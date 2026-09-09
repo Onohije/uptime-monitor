@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -25,4 +29,13 @@ provider "aws" {
       ManagedBy = "terraform"
     }
   }
+}
+
+variable "targets" {
+  description = "URLs the monitor probes, in priority order"
+  type        = list(string)
+  default = [
+    "https://example.com",
+    "https://www.gov.uk",
+  ]
 }

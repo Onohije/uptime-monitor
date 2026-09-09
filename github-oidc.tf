@@ -100,3 +100,133 @@ resource "aws_iam_role_policy" "dynamodb" {
     }]
   })
 }
+
+# The ceiling: any role the pipeline creates is capped by this, whatever
+# policy gets attached to it. Effective permissions = policy AND boundary.
+resource "aws_iam_policy" "lambda_boundary" {
+  name        = "uptime-monitor-lambda-boundary"
+  description = "Maximum permissions any uptime-monitor Lambda role may have"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Logging"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:eu-west-2:533267195508:log-group:/aws/lambda/uptime-monitor-*:*"
+      },
+      {
+        Sid    = "ChecksTableData"
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:Query",
+          "dynamodb:GetItem"
+        ]
+        Resource = "arn:aws:dynamodb:eu-west-2:533267195508:table/uptime-monitor-*"
+      },
+      {
+        Sid      = "Alerting"
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = "arn:aws:sns:eu-west-2:533267195508:uptime-monitor-*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_infra" {
+  name = "lambda-and-supporting-resources"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "CreateBoundedRolesOnly"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:PutRolePolicy",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:DeleteRolePolicy"
+        ]
+        Resource = "arn:aws:iam::533267195508:role/uptime-monitor-*"
+        Condition = {
+          StringEquals = {
+            "iam:PermissionsBoundary" = aws_iam_policy.lambda_boundary.arn
+          }
+        }
+      },
+      {
+        Sid    = "ReadAndDeleteOwnRoles"
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:GetRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListInstanceProfilesForRole",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:DeleteRole",
+          "iam:PassRole"
+        ]
+        Resource = "arn:aws:iam::533267195508:role/uptime-monitor-*"
+      },
+      {
+        Sid    = "NeverEscapeTheBoundary"
+        Effect = "Deny"
+        Action = [
+          "iam:DeleteRolePermissionsBoundary",
+          "iam:PutRolePermissionsBoundary"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "ManageFunctions"
+        Effect = "Allow"
+        Action = [
+          "lambda:CreateFunction",
+          "lambda:GetFunction",
+          "lambda:GetFunctionConfiguration",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:DeleteFunction",
+          "lambda:AddPermission",
+          "lambda:RemovePermission",
+          "lambda:GetPolicy",
+          "lambda:TagResource",
+          "lambda:UntagResource",
+          "lambda:ListTags"
+        ]
+        Resource = "arn:aws:lambda:eu-west-2:533267195508:function:uptime-monitor-*"
+      },
+      {
+        Sid    = "ManageLogGroups"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:DeleteLogGroup",
+          "logs:PutRetentionPolicy",
+          "logs:TagResource",
+          "logs:UntagResource",
+          "logs:ListTagsForResource"
+        ]
+        Resource = "arn:aws:logs:eu-west-2:533267195508:log-group:/aws/lambda/uptime-monitor-*"
+      },
+      {
+        Sid      = "DescribeLogGroups"
+        Effect   = "Allow"
+        Action   = ["logs:DescribeLogGroups"]
+        Resource = "*"
+      }
+    ]
+  })
+}
