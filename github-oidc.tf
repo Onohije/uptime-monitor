@@ -194,6 +194,14 @@ resource "aws_iam_role_policy" "lambda_infra" {
         Effect = "Allow"
         Action = [
           "lambda:CreateFunction",
+          "lambda:ListVersionsByFunction",
+          "lambda:PublishVersion",
+          "lambda:GetFunctionCodeSigningConfig",
+          "lambda:GetFunctionEventInvokeConfig",
+          "lambda:PutFunctionEventInvokeConfig",
+          "lambda:GetFunctionConcurrency",
+          "lambda:PutFunctionConcurrency",
+          "lambda:InvokeFunction",
           "lambda:GetFunction",
           "lambda:GetFunctionConfiguration",
           "lambda:UpdateFunctionCode",
