@@ -265,3 +265,31 @@ resource "aws_iam_role_policy" "eventbridge" {
     }]
   })
 }
+
+resource "aws_iam_role_policy" "sns" {
+  name = "sns-alerts"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid    = "ManageAlertTopic"
+      Effect = "Allow"
+      Action = [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:GetSubscriptionAttributes",
+        "sns:SetSubscriptionAttributes",
+        "sns:ListSubscriptionsByTopic",
+        "sns:TagResource",
+        "sns:UntagResource",
+        "sns:ListTagsForResource"
+      ]
+      Resource = "arn:aws:sns:eu-west-2:533267195508:uptime-monitor-*"
+    }]
+  })
+}

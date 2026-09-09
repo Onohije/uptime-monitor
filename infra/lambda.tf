@@ -47,8 +47,14 @@ resource "aws_iam_role_policy" "checker" {
       {
         Sid      = "WriteChecks"
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem"]
+        Action   = ["dynamodb:PutItem", "dynamodb:Query"]
         Resource = aws_dynamodb_table.checks.arn
+      },
+      {
+        Sid      = "PublishAlerts"
+        Effect   = "Allow"
+        Action   = ["sns:Publish"]
+        Resource = aws_sns_topic.alerts.arn
       }
     ]
   })
@@ -77,6 +83,7 @@ resource "aws_lambda_function" "checker" {
       TARGETS         = join(",", var.targets)
       TIMEOUT_SECONDS = "10"
       RETENTION_DAYS  = "30"
+      TOPIC_ARN       = aws_sns_topic.alerts.arn
     }
   }
 
