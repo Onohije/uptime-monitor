@@ -238,3 +238,30 @@ resource "aws_iam_role_policy" "lambda_infra" {
     ]
   })
 }
+
+resource "aws_iam_role_policy" "eventbridge" {
+  name = "eventbridge-schedule"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid    = "ManageScheduleRules"
+      Effect = "Allow"
+      Action = [
+        "events:PutRule",
+        "events:DeleteRule",
+        "events:DescribeRule",
+        "events:EnableRule",
+        "events:DisableRule",
+        "events:PutTargets",
+        "events:RemoveTargets",
+        "events:ListTargetsByRule",
+        "events:ListTagsForResource",
+        "events:TagResource",
+        "events:UntagResource"
+      ]
+      Resource = "arn:aws:events:eu-west-2:533267195508:rule/uptime-monitor-*"
+    }]
+  })
+}
