@@ -1,16 +1,28 @@
 terraform {
+  required_version = ">= 1.11"
+
+    backend "s3" {
+    bucket       = "uptime-monitor-tfstate-533267195508"
+    key          = "uptime-monitor/terraform.tfstate"
+    region       = "eu-west-2"
+    use_lockfile = true
+  }
+
   required_providers {
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
     }
   }
 }
 
-resource "random_pet" "example" {
-  length = 2
-}
+provider "aws" {
+  region = "eu-west-2"
 
-output "pet_name" {
-  value = random_pet.example.id
+  default_tags {
+    tags = {
+      Project   = "uptime-monitor"
+      ManagedBy = "terraform"
+    }
+  }
 }
