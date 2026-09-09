@@ -74,3 +74,29 @@ resource "aws_iam_role_policy" "terraform_state" {
 output "github_actions_role_arn" {
   value = aws_iam_role.github_actions.arn
 }
+
+resource "aws_iam_role_policy" "dynamodb" {
+  name = "dynamodb-checks-table"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid    = "ManageChecksTable"
+      Effect = "Allow"
+      Action = [
+        "dynamodb:CreateTable",
+        "dynamodb:DeleteTable",
+        "dynamodb:DescribeTable",
+        "dynamodb:DescribeContinuousBackups",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:UpdateTable",
+        "dynamodb:UpdateTimeToLive",
+        "dynamodb:TagResource",
+        "dynamodb:UntagResource",
+        "dynamodb:ListTagsOfResource"
+      ]
+      Resource = "arn:aws:dynamodb:eu-west-2:533267195508:table/uptime-monitor-*"
+    }]
+  })
+}
