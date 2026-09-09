@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "terraform_state" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "${aws_s3_bucket.tf_state.arn}/uptime-monitor/*"
+        Resource = "${aws_s3_bucket.tf_state.arn}/uptime-monitor/infra.tfstate*"
       }
     ]
   })
