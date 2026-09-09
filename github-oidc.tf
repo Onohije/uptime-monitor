@@ -4,10 +4,17 @@ variable "github_repo" {
   default     = "Onohije/uptime-monitor"
 }
 
+variable "github_repo_with_ids" {
+  description = "Same repo in GitHub's owner@ownerid/repo@repoid subject form"
+  type        = string
+  default     = "Onohije@116710916/uptime-monitor@1362662025"
+}
+
 resource "aws_iam_openid_connect_provider" "github" {
   url            = "https://token.actions.githubusercontent.com"
   client_id_list = ["sts.amazonaws.com"]
 }
+
 resource "aws_iam_role" "github_actions" {
   name        = "uptime-monitor-github-actions"
   description = "Assumed by GitHub Actions via OIDC to deploy uptime-monitor"
@@ -26,6 +33,8 @@ resource "aws_iam_role" "github_actions" {
         }
         StringLike = {
           "token.actions.githubusercontent.com:sub" = [
+            "repo:${var.github_repo_with_ids}:ref:refs/heads/main",
+            "repo:${var.github_repo_with_ids}:pull_request",
             "repo:${var.github_repo}:ref:refs/heads/main",
             "repo:${var.github_repo}:pull_request"
           ]
@@ -33,10 +42,6 @@ resource "aws_iam_role" "github_actions" {
       }
     }]
   })
-}
-
-output "github_actions_role_arn" {
-  value = aws_iam_role.github_actions.arn
 }
 
 resource "aws_iam_role_policy" "terraform_state" {
@@ -64,4 +69,8 @@ resource "aws_iam_role_policy" "terraform_state" {
       }
     ]
   })
+}
+
+output "github_actions_role_arn" {
+  value = aws_iam_role.github_actions.arn
 }
