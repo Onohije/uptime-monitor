@@ -1,7 +1,7 @@
 terraform {
   required_version = ">= 1.11"
 
-    backend "s3" {
+  backend "s3" {
     bucket       = "uptime-monitor-tfstate-533267195508"
     key          = "uptime-monitor/terraform.tfstate"
     region       = "eu-west-2"
