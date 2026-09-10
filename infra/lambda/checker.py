@@ -1,4 +1,3 @@
-cat > ~/uptime-monitor/infra/lambda/checker.py <<'PYEOF'
 """Probe each target URL, record the result, and alert on state changes."""
 
 import json
@@ -126,7 +125,6 @@ def handler(event, context):
         "down": sum(1 for r in results if not r["up"]),
         "alerts": alerts_sent,
     }
-PYEOF
 
 cd ~/uptime-monitor && terraform fmt -recursive
 git add -A && git commit -m "Add SNS alerting on up/down transitions" && git push
