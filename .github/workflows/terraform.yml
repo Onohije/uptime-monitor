@@ -64,6 +64,7 @@ jobs:
           path: |
             infra/tfplan
             infra/plan.txt
+            infra/build/checker.zip
           retention-days: 1
 
       - name: Comment plan on PR

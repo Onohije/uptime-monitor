@@ -35,8 +35,14 @@ resource "aws_iam_role" "github_actions" {
           "token.actions.githubusercontent.com:sub" = [
             "repo:${var.github_repo_with_ids}:ref:refs/heads/main",
             "repo:${var.github_repo_with_ids}:pull_request",
+            "repo:${var.github_repo_with_ids}:environment:production",
+            "repo:${var.github_repo_with_ids}:environment:production",
+            "repo:${var.github_repo_with_ids}:environment:production",
             "repo:${var.github_repo}:ref:refs/heads/main",
-            "repo:${var.github_repo}:pull_request"
+            "repo:${var.github_repo}:pull_request",
+            "repo:${var.github_repo}:environment:production",
+            "repo:${var.github_repo}:environment:production",
+            "repo:${var.github_repo}:environment:production"
           ]
         }
       }
