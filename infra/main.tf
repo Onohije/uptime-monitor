@@ -37,5 +37,6 @@ variable "targets" {
   default = [
     "https://example.com",
     "https://www.gov.uk",
+    "https://this-host-does-not-exist-9f3a.example",
   ]
 }
