@@ -49,6 +49,9 @@ jobs:
         with:
           terraform_version: ${{ env.TF_VERSION }}
 
+      - name: Lambda syntax check
+        run: python3 -m compileall -q lambda/
+
       - name: Terraform fmt
         run: terraform fmt -check -recursive
 

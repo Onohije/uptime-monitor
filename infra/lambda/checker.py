@@ -125,6 +125,3 @@ def handler(event, context):
         "down": sum(1 for r in results if not r["up"]),
         "alerts": alerts_sent,
     }
-
-cd ~/uptime-monitor && terraform fmt -recursive
-git add -A && git commit -m "Add SNS alerting on up/down transitions" && git push
