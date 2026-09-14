@@ -16,8 +16,43 @@ env:
   TF_VERSION: 1.16.1
 
 jobs:
+  scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Checkov
+        run: pip install --quiet checkov
+
+      - name: Scan Terraform
+        run: |
+          checkov --directory infra \
+                  --framework terraform \
+                  --compact \
+                  --output cli --output sarif \
+                  --output-file-path console,checkov.sarif
+
+      - name: Upload findings to code scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov.sarif
+          category: checkov
+
   plan:
     name: Validate and plan
+    needs: scan
     runs-on: ubuntu-latest
     defaults:
       run:
