@@ -75,7 +75,9 @@ jobs:
           terraform_wrapper: false
 
       - name: Lambda syntax check
-        run: python3 -m compileall -q lambda/
+        run: |
+          python3 -m compileall -q lambda/
+          rm -rf lambda/__pycache__
 
       - name: Terraform fmt
         run: terraform fmt -check -recursive

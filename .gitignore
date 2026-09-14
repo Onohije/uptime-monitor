@@ -13,3 +13,4 @@ crash.log
 crash.*.log
 tfplan
 infra/build/
+__pycache__/

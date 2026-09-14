@@ -9,6 +9,7 @@ data "archive_file" "checker" {
   type        = "zip"
   source_dir  = "${path.module}/lambda"
   output_path = "${path.module}/build/checker.zip"
+  excludes    = ["__pycache__"]
 }
 
 data "aws_iam_policy_document" "lambda_assume_role" {
