@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Status</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #fbfbfa; --card: #fff; --line: #e4e4e1;
+    --ink: #17171a; --muted: #6b6b73;
+    --up: #17795e; --down: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#131316; --card:#1b1b1f; --line:#2c2c32; --ink:#ececf0; --muted:#9a9aa4; --up:#3ecf9a; --down:#ff6b5e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 { font-size: 1.35rem; letter-spacing: -0.02em; margin: 0 0 0.35rem; }
+  .sub { color: var(--muted); font-size: 0.875rem; margin: 0 0 2rem; }
+  .banner {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.9rem 1.1rem; border-radius: 10px; margin-bottom: 1.5rem;
+    border: 1px solid var(--line); background: var(--card); font-weight: 600;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .up .dot, .dot.up { background: var(--up); }
+  .down .dot, .dot.down { background: var(--down); }
+  .up { color: var(--up); }
+  .down { color: var(--down); }
+  .card {
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 0.85rem;
+  }
+  .row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .name { font-weight: 600; word-break: break-all; }
+  .state { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .bars { display: flex; gap: 2px; margin: 0.85rem 0 0.7rem; height: 26px; align-items: flex-end; }
+  .bar { flex: 1; min-width: 2px; border-radius: 1px; background: var(--up); opacity: 0.85; }
+  .bar.down { background: var(--down); opacity: 1; }
+  .meta { display: flex; gap: 1.5rem; flex-wrap: wrap; color: var(--muted); font-size: 0.8125rem; }
+  .meta b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  footer { color: var(--muted); font-size: 0.8125rem; margin-top: 2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Service status</h1>
+  <p class="sub">Checked every five minutes.</p>
+  <div id="app">Loading…</div>
+  <footer id="footer"></footer>
+</main>
+
+<script>
+const app = document.getElementById('app');
+const footer = document.getElementById('footer');
+
+function ago(ts) {
+  const s = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+
+function bars(samples) {
+  if (!samples.length) return '';
+  const max = Math.max(...samples.map(s => s.ms), 1);
+  return '<div class="bars">' + samples.map(s => {
+    const h = s.up ? Math.max(15, Math.round(s.ms / max * 100)) : 100;
+    const when = new Date(s.at * 1000).toLocaleString();
+    return `<div class="bar ${s.up ? '' : 'down'}" style="height:${h}%" title="${when} — ${s.up ? s.ms + 'ms' : 'down'}"></div>`;
+  }).join('') + '</div>';
+}
+
+function card(t) {
+  const uptime = t.uptime_percent === null ? '—' : t.uptime_percent + '%';
+  const latency = t.average_latency_ms == null ? '—' : t.average_latency_ms + 'ms';
+  const detail = t.last_error ? t.last_error : (t.last_status_code ? 'HTTP ' + t.last_status_code : '—');
+  return `<div class="card">
+    <div class="row">
+      <span class="name">${t.target}</span>
+      <span class="state ${t.status}"><span class="dot ${t.status}"></span> ${t.status}</span>
+    </div>
+    ${bars(t.samples)}
+    <div class="meta">
+      <span>Uptime <b>${uptime}</b></span>
+      <span>Avg latency <b>${latency}</b></span>
+      <span>Last check <b>${t.last_checked ? ago(t.last_checked) : '—'}</b></span>
+      <span>Last result <b>${detail}</b></span>
+    </div>
+  </div>`;
+}
+
+async function load() {
+  try {
+    const res = await fetch('status.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    const down = data.targets.filter(t => t.status === 'down').length;
+    const banner = down
+      ? `<div class="banner down"><span class="dot down"></span>${down} of ${data.targets.length} services are down</div>`
+      : `<div class="banner up"><span class="dot up"></span>All systems operational</div>`;
+
+    app.innerHTML = banner + data.targets.map(card).join('');
+    footer.textContent = `Last updated ${ago(data.generated_at)} · ${data.window_hours}h window`;
+  } catch (err) {
+    app.innerHTML = `<div class="card">Could not load status data (${err.message}).</div>`;
+  }
+}
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
