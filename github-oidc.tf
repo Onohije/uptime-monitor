@@ -327,6 +327,9 @@ resource "aws_iam_role_policy" "status_page" {
           "s3:GetBucketWebsite",
           "s3:GetBucketLogging",
           "s3:GetLifecycleConfiguration",
+          "s3:PutLifecycleConfiguration",
+          "s3:PutLifecycleConfiguration",
+          "s3:PutLifecycleConfiguration",
           "s3:GetReplicationConfiguration",
           "s3:GetBucketObjectLockConfiguration",
           "s3:GetBucketRequestPayment",
@@ -369,6 +372,12 @@ resource "aws_iam_role_policy" "status_page" {
           "cloudfront:UpdateOriginAccessControl",
           "cloudfront:DeleteOriginAccessControl",
           "cloudfront:ListOriginAccessControls",
+          "cloudfront:GetResponseHeadersPolicy",
+          "cloudfront:ListResponseHeadersPolicies",
+          "cloudfront:GetResponseHeadersPolicy",
+          "cloudfront:ListResponseHeadersPolicies",
+          "cloudfront:GetResponseHeadersPolicy",
+          "cloudfront:ListResponseHeadersPolicies",
           "cloudfront:CreateInvalidation",
           "cloudfront:GetInvalidation"
         ]
