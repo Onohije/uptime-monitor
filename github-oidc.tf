@@ -355,7 +355,10 @@ resource "aws_iam_role_policy" "status_page" {
           "s3:GetObject",
           "s3:PutObject",
           "s3:DeleteObject",
-          "s3:ListBucket"
+          "s3:ListBucket",
+          "s3:PutObjectTagging",
+          "s3:GetObjectTagging",
+          "s3:DeleteObjectTagging"
         ]
         Resource = [
           "arn:aws:s3:::uptime-monitor-status-*",
