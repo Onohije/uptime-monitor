@@ -5,6 +5,7 @@ variable "alert_email" {
 }
 
 resource "aws_sns_topic" "alerts" {
+  #checkov:skip=CKV_AWS_26:Messages contain only target URLs and status codes. SSE-KMS would require kms:GenerateDataKey through the Lambda permissions boundary, adding a failure path to the alerting itself
   name = "uptime-monitor-alerts"
 }
 

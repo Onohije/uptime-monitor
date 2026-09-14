@@ -61,11 +61,17 @@ resource "aws_iam_role_policy" "checker" {
 }
 
 resource "aws_cloudwatch_log_group" "checker" {
+  #checkov:skip=CKV_AWS_158:Encrypted with the AWS-managed key. Logs hold no secrets; a CMK adds cost without benefit
+  #checkov:skip=CKV_AWS_338:14 days is deliberate. These are operational logs; the durable record lives in DynamoDB
   name              = "/aws/lambda/${local.function_name}"
   retention_in_days = 14
 }
 
 resource "aws_lambda_function" "checker" {
+  #checkov:skip=CKV_AWS_173:Environment variables hold a table name, a topic ARN and public URLs. Already encrypted with the AWS-managed key
+  #checkov:skip=CKV_AWS_272:Code signing requires AWS Signer. Source is a single file from this repo, deployed only through a reviewed pipeline
+  #checkov:skip=CKV_AWS_50:One synchronous function with no downstream calls to trace. Enabling X-Ray would also require widening the permissions boundary
+  #checkov:skip=CKV_AWS_117:The function's purpose is probing the public internet. A VPC would require a NAT gateway (~GBP 25/month) to restore what it already does
   function_name = local.function_name
   role          = aws_iam_role.checker.arn
 
@@ -76,6 +82,15 @@ resource "aws_lambda_function" "checker" {
   handler     = "checker.handler"
   timeout     = 60
   memory_size = 256
+
+  # Caps blast radius: a bug cannot spawn unbounded concurrent executions.
+  reserved_concurrent_executions = 2
+
+  # Without this, a failed async invocation is retried twice and then silently
+  # discarded - the monitor would go blind with nothing to show for it.
+  dead_letter_config {
+    target_arn = aws_sns_topic.alerts.arn
+  }
 
   environment {
     variables = {
