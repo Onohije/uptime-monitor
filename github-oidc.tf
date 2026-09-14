@@ -137,6 +137,12 @@ resource "aws_iam_policy" "lambda_boundary" {
         Resource = "arn:aws:dynamodb:eu-west-2:533267195508:table/uptime-monitor-*"
       },
       {
+        Sid      = "StatusSite"
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
+        Resource = "arn:aws:s3:::uptime-monitor-status-*/*"
+      },
+      {
         Sid      = "Alerting"
         Effect   = "Allow"
         Action   = ["sns:Publish"]
