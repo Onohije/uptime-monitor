@@ -102,7 +102,6 @@ jobs:
             infra/tfplan
             infra/plan.txt
             infra/build/
-            infra/build/
           retention-days: 1
 
       - name: Comment plan on PR
