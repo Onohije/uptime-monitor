@@ -71,6 +71,7 @@ resource "aws_lambda_function" "checker" {
   #checkov:skip=CKV_AWS_173:Environment variables hold a table name, a topic ARN and public URLs. Already encrypted with the AWS-managed key
   #checkov:skip=CKV_AWS_272:Code signing requires AWS Signer. Source is a single file from this repo, deployed only through a reviewed pipeline
   #checkov:skip=CKV_AWS_50:One synchronous function with no downstream calls to trace. Enabling X-Ray would also require widening the permissions boundary
+  #checkov:skip=CKV_AWS_115:This account's total concurrency limit is 10, and AWS requires at least 10 unreserved. Reserving any amount is rejected until a quota increase is granted
   #checkov:skip=CKV_AWS_117:The function's purpose is probing the public internet. A VPC would require a NAT gateway (~GBP 25/month) to restore what it already does
   function_name = local.function_name
   role          = aws_iam_role.checker.arn
@@ -82,9 +83,6 @@ resource "aws_lambda_function" "checker" {
   handler     = "checker.handler"
   timeout     = 60
   memory_size = 256
-
-  # Caps blast radius: a bug cannot spawn unbounded concurrent executions.
-  reserved_concurrent_executions = 2
 
   # Without this, a failed async invocation is retried twice and then silently
   # discarded - the monitor would go blind with nothing to show for it.
