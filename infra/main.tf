@@ -35,6 +35,7 @@ variable "targets" {
   description = "URLs the monitor probes, in priority order"
   type        = list(string)
   default = [
+    "https://blessing-onohije-igbadume.vercel.app",
     "https://example.com",
     "https://www.gov.uk",
   ]
